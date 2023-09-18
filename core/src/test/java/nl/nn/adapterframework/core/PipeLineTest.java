@@ -13,18 +13,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
+import nl.nn.adapterframework.core.IWrapperPipe.Direction;
 import nl.nn.adapterframework.core.PipeLine.ExitState;
 import nl.nn.adapterframework.extensions.esb.DirectWrapperPipe;
 import nl.nn.adapterframework.pipes.AbstractPipe;
 import nl.nn.adapterframework.pipes.EchoPipe;
+import nl.nn.adapterframework.processors.CorePipeLineProcessor;
 import nl.nn.adapterframework.processors.CorePipeProcessor;
+import nl.nn.adapterframework.soap.SoapVersion;
+import nl.nn.adapterframework.soap.SoapWrapperPipe;
 import nl.nn.adapterframework.stream.Message;
+import nl.nn.adapterframework.testutil.TestAssertions;
 import nl.nn.adapterframework.testutil.TestConfiguration;
 
 @SuppressWarnings("deprecation") //Part of the tests!
 public class PipeLineTest {
 
 	TestConfiguration configuration;
+
+	private String soapMessageSoap12 = "<soapenv:Envelope xmlns:soapenv=\"http://www.w3.org/2003/05/soap-envelope\">"
+			+ "<soapenv:Body><FindDocuments_Response xmlns=\"http://api.nn.nl/FindDocuments\">"
+			+ "<Result xmlns=\"http://nn.nl/XSD/Generic/MessageHeader/1\"><Status>OK</Status></Result>"
+			+ "</FindDocuments_Response></soapenv:Body></soapenv:Envelope>";
 
 	@BeforeEach
 	void setUp() {
@@ -302,5 +312,62 @@ public class PipeLineTest {
 		IForwardTarget target = pipeline.resolveForward(pipe, pipeForward);
 
 		assertNotNull(target);
+	}
+	
+	@Test
+	public void soapVersionIgnoredWhenSoapNamespaceExists() throws Exception {
+		PipeLine pipeline = configuration.createBean(PipeLine.class);
+
+		PipeForward pf = configuration.createBean(PipeForward.class);
+		pf.setName("success");
+		pf.setPath("nextPipe");
+
+		PipeForward toExit = configuration.createBean(PipeForward.class);
+		toExit.setName("success");
+		toExit.setPath("EXIT");
+
+		// Simulate soapInputWrapper unwrapping the input and creating soapNamespace sessionKey using the namespace from the input
+		SoapWrapperPipe inputWrapper = new SoapWrapperPipe();
+		inputWrapper.setDirection(Direction.UNWRAP);
+		inputWrapper.setSoapVersion(SoapVersion.AUTO);
+
+		// Simulate soapOutputWrapper having soap version 1.1 (expecting soap 1.1 namespace in the output)
+		SoapWrapperPipe outputWrapper = new SoapWrapperPipe();
+		outputWrapper.setSoapVersion(SoapVersion.SOAP11);
+
+		pipeline.setInputWrapper(inputWrapper);
+		pipeline.setOutputWrapper(outputWrapper);
+
+		EchoPipe echoPipe = configuration.createBean(EchoPipe.class);
+		echoPipe.setName("firstPipe");
+		echoPipe.setPipeLine(pipeline);
+		echoPipe.registerForward(toExit);
+		pipeline.addPipe(echoPipe);
+
+		PipeLineExit exit = configuration.createBean(PipeLineExit.class);
+		exit.setName("EXIT");
+		exit.setState(ExitState.SUCCESS);
+		pipeline.registerPipeLineExit(exit);
+
+		pipeline.setOwner(echoPipe);
+		pipeline.configure();
+
+		CorePipeProcessor cpp = configuration.createBean(CorePipeProcessor.class);
+		CorePipeLineProcessor cplp = configuration.createBean(CorePipeLineProcessor.class);
+		cplp.setPipeProcessor(cpp);
+
+		// init session object which will have soapNamespace stored after the doPipe
+		PipeLineSession ps = configuration.createBean(PipeLineSession.class);
+
+		PipeLineResult pipeLineResult=cplp.processPipeLine(pipeline, "dummyMessageId", Message.asMessage(soapMessageSoap12), ps, "firstPipe");
+
+		TestAssertions.assertEquals("http://www.w3.org/2003/05/soap-envelope", ps.get("soapNamespace"));
+
+		String result = pipeLineResult.getResult().asString();
+		System.err.println(result);		// print the result
+		System.err.println(soapMessageSoap12); // print the input for comparison
+		TestAssertions.assertNotEquals(soapMessageSoap12, result, "result should not have the same namespace as the input as it is configured to be 1.1 namespace");
+
+		// To make it work with the current version of the ff it is necessary to override soapNamespace sessionKey to 1.1 namespace manually
 	}
 }
