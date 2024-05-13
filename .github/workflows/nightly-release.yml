@@ -12,11 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
       - uses: bluwy/substitute-string-action@v3
-        name: Create tag name
-        id: tag-name
+        name: Get branch name
+        id: branch
         with:
-          _input-text: "${{github.ref_name}}"
-          release: nightly
+          _input-text: "${{ github.ref_name }}"
+          -release: ''
+      - name: Set tag name
+        env:
+          TAG: ${{ github.event.inputs.revision }}-nightly
       - name: Update nightly release
         uses: andelf/nightly-release@main
         env:
