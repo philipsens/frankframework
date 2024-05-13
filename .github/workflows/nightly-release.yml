@@ -18,7 +18,7 @@ jobs:
           _input-text: "${{ github.ref_name }}"
           -release: ''
       - name: Set tag name
-        run: echo "TAG=${{ steps.tag-name.outputs.result }}-nightly" >> $GITHUB_ENV
+        run: echo "TAG=${{ steps.branch.outputs.result }}-nightly" >> $GITHUB_ENV
       - name: Update nightly release
         uses: andelf/nightly-release@main
         env:
