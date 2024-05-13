@@ -9,13 +9,19 @@ on:
 jobs:
   nightly-release:
     runs-on: ubuntu-latest
-    steps:          
+    steps: 
+      - uses: bluwy/substitute-string-action@v3
+        name: Create tag name
+        id: tag-name
+        with:
+          _input-text: github.ref_name
+          release: nightly
       - name: Update nightly release
         uses: andelf/nightly-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "${{ github.ref_name }}-nightly"
+          tag_name: "${{ steps.tag-name.outputs.result }}"
           name: "Frank!Framework nightly release ${{ github.event.inputs.revision }}"
           draft: false
           prerelease: true
