@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       revision:
+        description: The version in the title of the release.
+        required: true
 
 jobs:
   nightly-release:
