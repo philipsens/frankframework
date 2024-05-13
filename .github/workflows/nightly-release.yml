@@ -67,7 +67,7 @@ jobs:
             <summary>Pull the Docker image</summary>
             
             ```shell
-            docker pull frankframework/frankframework:${{ github.event.inputs.revision }}`
+            docker pull frankframework/frankframework:${{ github.event.inputs.revision }}
             ```
 
             </details>
