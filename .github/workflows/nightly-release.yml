@@ -27,15 +27,43 @@ jobs:
           draft: false
           prerelease: true
           body: |
-            Nightly version: 
+            ## Copy version
             ```
             ${{ github.event.inputs.revision }}
             ```
             
-            **Get the Webapp**
-            [Download from Nexus](https://nexus.frankframework.org/repository/releases/org/frankframework/frankframework-webapp/${{ github.event.inputs.revision }}/frankframework-webapp-${{ github.event.inputs.revision }}.war)
+            ## Get the Webapp
+            
+            Add it to your maven project:
+            
+            ```xml pom.xml
+            <dependencies>
+              <dependency>
+                <groupId>org.frankframework</groupId>
+                <artifactId>frankframework-webapp</artifactId>
+                <version>${{ github.event.inputs.revision }}</version>
+              </dependency>
+            </dependencies>
 
-            **Get the Docker image**
-            You can pull the Docker image with `docker pull frankframework/frankframework:${{ github.event.inputs.revision }}` or [visit the image on DockerHub](https://hub.docker.com/r/frankframework/frankframework/tags?page=&page_size=&ordering=&name=${{ github.event.inputs.revision }})
+            <repositories>
+              <repository>
+                <id>frankframework</id>
+                <name>Frank!Framework</name>
+                <url>https://nexus.frankframework.org/content/repositories/public</url>
+              </repository>
+            </repositories>
+            ```
+
+            Or [download it from Nexus](https://nexus.frankframework.org/repository/releases/org/frankframework/frankframework-webapp/${{ github.event.inputs.revision }}/frankframework-webapp-${{ github.event.inputs.revision }}.war)
+
+            ## Get the Docker image
+            
+            Pull the Docker image:
+            
+            ```shell
+            docker pull frankframework/frankframework:${{ github.event.inputs.revision }}`
+            ```
+            
+            Or [visit the image on DockerHub](https://hub.docker.com/r/frankframework/frankframework/tags?page=&page_size=&ordering=&name=${{ github.event.inputs.revision }})
             
             
