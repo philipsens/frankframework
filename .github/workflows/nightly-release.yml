@@ -27,8 +27,15 @@ jobs:
           draft: false
           prerelease: true
           body: |
-            Nightly version: `${{ github.event.inputs.revision }}`
-            [Download the webapp from Nexus](https://nexus.frankframework.org/repository/releases/org/frankframework/frankframework-webapp/${{ github.event.inputs.revision }}/frankframework-webapp-${{ github.event.inputs.revision }}.war)
+            Nightly version: 
+            ```
+            ${{ github.event.inputs.revision }}
+            ```
+            
+            **Get the Webapp**
+            [Download from Nexus](https://nexus.frankframework.org/repository/releases/org/frankframework/frankframework-webapp/${{ github.event.inputs.revision }}/frankframework-webapp-${{ github.event.inputs.revision }}.war)
+
+            **Get the Docker image**
             You can pull the Docker image with `docker pull frankframework/frankframework:${{ github.event.inputs.revision }}` or [visit the image on DockerHub](https://hub.docker.com/r/frankframework/frankframework/tags?page=&page_size=&ordering=&name=${{ github.event.inputs.revision }})
             
             
