@@ -14,7 +14,7 @@ jobs:
         name: Create tag name
         id: tag-name
         with:
-          _input-text: github.ref_name
+          _input-text: "${{github.ref_name}}"
           release: nightly
       - name: Update nightly release
         uses: andelf/nightly-release@main
