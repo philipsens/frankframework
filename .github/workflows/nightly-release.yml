@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
     inputs:
       revision:
-        required: true
 
 jobs:
   nightly-release:
