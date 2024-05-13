@@ -12,19 +12,68 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
       - uses: bluwy/substitute-string-action@v3
-        name: Create tag name
-        id: tag-name
+        name: Get branch name
+        id: branch
         with:
-          _input-text: "${{github.ref_name}}"
-          release: nightly
+          _input-text: "${{ github.ref_name }}"
+          -release: ''
+      - name: Set tag name
+        run: echo "TAG=${{ steps.branch.outputs.result }}-nightly" >> $GITHUB_ENV
       - name: Update nightly release
         uses: andelf/nightly-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "${{ steps.tag-name.outputs.result }}"
-          name: "Frank!Framework nightly release ${{ github.event.inputs.revision }}"
+          tag_name: "${{ env.TAG }}"
+          name: "v${{ github.event.inputs.revision }} (nightly)"
           draft: false
           prerelease: true
           body: |
-            Misschien wat linkjes hier naar nexus/docker?
+            ## Copy version
+            ```
+            ${{ github.event.inputs.revision }}
+            ```
+            
+            ## Get the Webapp
+            
+            <details>
+
+            <summary>Add it to the <code>pom.xml</code></summary>
+            
+            ```xml pom.xml
+            <dependencies>
+              <dependency>
+                <groupId>org.frankframework</groupId>
+                <artifactId>frankframework-webapp</artifactId>
+                <version>${{ github.event.inputs.revision }}</version>
+              </dependency>
+            </dependencies>
+
+            <repositories>
+              <repository>
+                <id>frankframework</id>
+                <name>Frank!Framework</name>
+                <url>https://nexus.frankframework.org/content/repositories/public</url>
+              </repository>
+            </repositories>
+            ```
+
+            </details>
+
+            Or [download it from Nexus](https://nexus.frankframework.org/repository/releases/org/frankframework/frankframework-webapp/${{ github.event.inputs.revision }}/frankframework-webapp-${{ github.event.inputs.revision }}.war)
+
+            ## Get the Docker image
+            
+            <details>
+
+            <summary>Pull the Docker image</summary>
+            
+            ```shell
+            docker pull frankframework/frankframework:${{ github.event.inputs.revision }}
+            ```
+
+            </details>
+            
+            Or [visit the image on DockerHub](https://hub.docker.com/r/frankframework/frankframework/tags?page=&page_size=&ordering=&name=${{ github.event.inputs.revision }})
+            
+            
