@@ -15,8 +15,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "${{github.head_ref}}-nightly"
-          name: "Frank!Framework nightly release ${{github.event.inputs.revision}}"
+          tag_name: "${{ github.ref_name }}-nightly"
+          name: "Frank!Framework nightly release ${{ github.event.inputs.revision }}"
           draft: false
           prerelease: true
           body: |
