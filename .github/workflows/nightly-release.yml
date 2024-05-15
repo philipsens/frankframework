@@ -30,16 +30,17 @@ jobs:
           prerelease: true
           body: |
             ## Copy version
+            
             ```
             ${{ github.event.inputs.revision }}
             ```
+
+            <details>
+            <summary>Download instructions</summery>
             
             ## Get the Webapp
             
-            <details>
-
-            <summary>Add it to the <code>pom.xml</code></summary>
-            
+            Add it to the `pom.xml`:
             ```xml pom.xml
             <dependencies>
               <dependency>
@@ -57,23 +58,13 @@ jobs:
               </repository>
             </repositories>
             ```
-
-            </details>
-
             Or [download it from Nexus](https://nexus.frankframework.org/repository/releases/org/frankframework/frankframework-webapp/${{ github.event.inputs.revision }}/frankframework-webapp-${{ github.event.inputs.revision }}.war)
 
             ## Get the Docker image
             
-            <details>
-
-            <summary>Pull the Docker image</summary>
-            
+            Pull the Docker image:
             ```shell
             docker pull frankframework/frankframework:${{ github.event.inputs.revision }}
             ```
-
-            </details>
-            
             Or [visit the image on DockerHub](https://hub.docker.com/r/frankframework/frankframework/tags?page=&page_size=&ordering=&name=${{ github.event.inputs.revision }})
-            
-            
+            </details>
