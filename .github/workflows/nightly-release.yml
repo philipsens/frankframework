@@ -29,6 +29,8 @@ jobs:
           draft: false
           prerelease: true
           body: |
+            The Frank!Framework nightly (snapshot) build provides a daily compilation of the latest code changes and developments, allowing users to access cutting-edge features and updates before they are officially released.
+          
             ## Copy version
             
             ```
@@ -38,7 +40,7 @@ jobs:
             <details>
             <summary><h2>Download instructions</h2></summary>
             
-            ## Get the Webapp
+            ### Get the Webapp
             
             Add it to the `pom.xml`:
             ```xml pom.xml
@@ -60,7 +62,7 @@ jobs:
             ```
             Or [download it from Nexus](https://nexus.frankframework.org/repository/releases/org/frankframework/frankframework-webapp/${{ github.event.inputs.revision }}/frankframework-webapp-${{ github.event.inputs.revision }}.war)
 
-            ## Get the Docker image
+            ### Get the Docker image
             
             Pull the Docker image:
             ```shell
