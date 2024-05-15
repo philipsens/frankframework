@@ -36,7 +36,7 @@ jobs:
             ```
 
             <details>
-            <summary>Download instructions</summery>
+            <summary><h2>Download instructions</h2></summary>
             
             ## Get the Webapp
             
@@ -67,4 +67,5 @@ jobs:
             docker pull frankframework/frankframework:${{ github.event.inputs.revision }}
             ```
             Or [visit the image on DockerHub](https://hub.docker.com/r/frankframework/frankframework/tags?page=&page_size=&ordering=&name=${{ github.event.inputs.revision }})
+            
             </details>
