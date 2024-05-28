@@ -6,11 +6,17 @@ on:
       revision:
         description: The version in the title of the release.
         required: true
+      ref:
+        description: Branch to checkout
+        required: true
 
 jobs:
   nightly-release:
     runs-on: ubuntu-latest
     steps: 
+      - uses: actions/checkout@v4
+        with:
+          ref: "${{ github.event.inputs.ref }}"
       - uses: bluwy/substitute-string-action@v3
         name: Get branch name
         id: branch
