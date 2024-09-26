@@ -39,9 +39,11 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.jms.JMSException;
 import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import org.frankframework.configuration.ConfigurationException;
 import org.frankframework.configuration.ConfigurationWarning;
 import org.frankframework.configuration.ConfigurationWarnings;
@@ -332,9 +334,9 @@ public abstract class JdbcQuerySenderBase<H> extends JdbcSenderBase<H> {
 					}
 				case UPDATEBLOB:
 					if (StringUtils.isNotEmpty(getBlobSessionKey())) {
-						return new SenderResult(executeUpdateBlobQuery(statement, session.getMessage(getBlobSessionKey())));
+						return new SenderResult(executeUpdateBlobQuery(statement, session.getMessage(getBlobSessionKey()), session));
 					}
-					return new SenderResult(executeUpdateBlobQuery(statement, message));
+					return new SenderResult(executeUpdateBlobQuery(statement, message, session));
 				case UPDATECLOB:
 					if (StringUtils.isNotEmpty(getClobSessionKey())) {
 						return new SenderResult(executeUpdateClobQuery(statement, session.getMessage(getClobSessionKey())));
@@ -557,30 +559,24 @@ public abstract class JdbcQuerySenderBase<H> extends JdbcSenderBase<H> {
 		return new BlobOutputStream(getDbmsSupport(), blobUpdateHandle, blobColumn, dbmsOutputStream, rs, result);
 	}
 
-	protected Message executeUpdateBlobQuery(PreparedStatement statement, Message contents) throws SenderException{
-		BlobOutputStream blobOutputStream=null;
-		try {
-			try {
-				blobOutputStream = getBlobOutputStream(statement, blobColumn, isBlobsCompressed());
-				if (contents!=null) {
-					if (StringUtils.isNotEmpty(getStreamCharset())) {
-						contents = new Message(contents.asReader(getStreamCharset()));
-					}
-					InputStream inputStream = contents.asInputStream(getBlobCharset());
-					if (!isCloseInputstreamOnExit()) {
-						inputStream = StreamUtil.dontClose(inputStream);
-					}
-					StreamUtil.streamToStream(inputStream,blobOutputStream);
+	protected Message executeUpdateBlobQuery(PreparedStatement statement, Message contents, PipeLineSession session) throws SenderException {
+		try (BlobOutputStream blobOutputStream = getBlobOutputStream(statement, blobColumn, isBlobsCompressed())) {
+			if (contents!=null) {
+				if (StringUtils.isNotEmpty(getStreamCharset())) {
+					contents = new Message(contents.asReader(getStreamCharset()));
+					session.scheduleCloseOnSessionExit(contents, "executeUpdateBlobQuery");
 				}
-			} finally {
-				if (blobOutputStream!=null) {
-					blobOutputStream.close();
+				InputStream inputStream = contents.asInputStream(getBlobCharset());
+				if (!isCloseInputstreamOnExit()) {
+					inputStream = StreamUtil.dontClose(inputStream);
 				}
+				StreamUtil.streamToStream(inputStream,blobOutputStream);
 			}
+			return blobOutputStream.getWarnings().asMessage();
 		} catch (SQLException|JdbcException|IOException e) {
 			throw new SenderException("got exception executing an update BLOB command", e);
 		}
-		return blobOutputStream.getWarnings().asMessage();
+
 	}
 
 	private ClobWriter getClobWriter(PreparedStatement statement, int clobColumn) throws SQLException, JdbcException {
@@ -594,27 +590,19 @@ public abstract class JdbcQuerySenderBase<H> extends JdbcSenderBase<H> {
 		return new ClobWriter(getDbmsSupport(), clobUpdateHandle, clobColumn, dbmsWriter, rs, result);
 	}
 
-	protected Message executeUpdateClobQuery(PreparedStatement statement, Message contents) throws SenderException{
-		ClobWriter clobWriter=null;
-		try {
-			try {
-				clobWriter = getClobWriter(statement, getClobColumn());
-				if (contents!=null) {
-					Reader reader = contents.asReader(getStreamCharset());
-					if (!isCloseInputstreamOnExit()) {
-						reader = StreamUtil.dontClose(reader);
-					}
-					StreamUtil.readerToWriter(reader, clobWriter);
+	protected Message executeUpdateClobQuery(PreparedStatement statement, Message contents) throws SenderException {
+		try (ClobWriter clobWriter = getClobWriter(statement, getClobColumn())) {
+			if (contents!=null) {
+				Reader reader = contents.asReader(getStreamCharset());
+				if (!isCloseInputstreamOnExit()) {
+					reader = StreamUtil.dontClose(reader);
 				}
-			} finally {
-				if (clobWriter!=null) {
-					clobWriter.close();
-				}
+				StreamUtil.readerToWriter(reader, clobWriter);
 			}
+			return clobWriter.getWarnings().asMessage();
 		} catch (SQLException|JdbcException|IOException e) {
 			throw new SenderException("got exception executing an update CLOB command", e);
 		}
-		return clobWriter.getWarnings().asMessage();
 	}
 
 	protected SenderResult executeSelectQuery(PreparedStatement statement, Object blobSessionVar, Object clobSessionVar) throws SenderException{
