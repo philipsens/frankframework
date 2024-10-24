@@ -13,10 +13,14 @@ updates:
     reviewers:
       - frankframework/maintainers
     ignore:
-      - dependency-name: "org.ibissource:ibis-ladybug"
-      - dependency-name: "com.aspose:*"
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      - dependency-name: "org.ibissource:ibis-ladybug"
+      - dependency-name: "com.aspose:*"
+      - dependency-name: "com.sap.jco3:sapidoc"
+      - dependency-name: "org.frankframework:frankframework-ear"
+      - dependency-name: "org.filesys:jfileserver-enterprise"
+      - dependency-name: "org.eclipse.m2e:lifecycle-mapping"
 
   - package-ecosystem: "npm"
     directory: "/console/frontend/src/main/frontend"
