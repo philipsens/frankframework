@@ -86,7 +86,7 @@ updates:
       
   - package-ecosystem: "docker"
     directories:
-      - docker/**
+      - "/docker/**"
     schedule: 
       interval: "daily"
     labels:
